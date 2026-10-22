@@ -1,0 +1,7 @@
+init 400 200
+create g flow
+create rect start 30 70 120 60 #4a90d9 in flow
+create line edge 150 100 250 100 black in flow
+create rect end 250 70 120 60 #f5a623 in flow
+tree
+save demo.svg
