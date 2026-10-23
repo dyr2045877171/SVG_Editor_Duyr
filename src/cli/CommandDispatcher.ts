@@ -1,4 +1,4 @@
-﻿import { EditorService } from '../application/EditorService';
+import { EditorService } from '../application/EditorService';
 import { CreateCommand } from '../application/commands/CreateCommand';
 import { DeleteCommand } from '../application/commands/DeleteCommand';
 import { MoveCommand } from '../application/commands/MoveCommand';
@@ -73,6 +73,12 @@ export class CommandDispatcher {
         case 'back':
           this.arity(name, args, 1);
           return this.editor.execute(new BackCommand(args[0]!));
+        case 'undo':
+          this.arity(name, args, 0);
+          return this.editor.undo();
+        case 'redo':
+          this.arity(name, args, 0);
+          return this.editor.redo();
         case 'tree':
           this.arity(name, args, 0, 1);
           return this.editor.tree(args[0]);
@@ -84,7 +90,7 @@ export class CommandDispatcher {
           return 'init [w] [h] | read <file.svg> | save [file.svg] | canvas [w] [h]\n' +
             'create <type> <id> [params] [in <containerId>] | delete <id> | move <id> <dx> <dy> | scale <id> <factor>\n' +
             'set <id> <attr> <value> | group <newGid> <id...> | ungroup <gid> | addto <gid> <id>\n' +
-            'front <id> | back <id> | tree [id] | show <id> | help';
+            'front <id> | back <id> | tree [id] | show <id> | undo | redo | help';
         default:
           throw new Error(`unknown command: ${name}`);
       }
@@ -97,4 +103,3 @@ export class CommandDispatcher {
     if (args.length < minimum || args.length > maximum) throw new Error(`invalid ${name} arguments`);
   }
 }
-
