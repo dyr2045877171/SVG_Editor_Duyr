@@ -1,4 +1,4 @@
-﻿import { strict as assert } from 'node:assert';
+import { strict as assert } from 'node:assert';
 import { mkdtempSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -6,9 +6,10 @@ import { test } from 'node:test';
 import { EditorService } from '../src/application/EditorService';
 import { CommandDispatcher } from '../src/cli/CommandDispatcher';
 import { SvgFileStore } from '../src/infrastructure/svg/SvgFileStore';
+import { ShapeFactory } from '../src/application/ShapeFactory';
 
 function setup(): CommandDispatcher {
-  return new CommandDispatcher(new EditorService(new SvgFileStore()));
+  return new CommandDispatcher(new EditorService(new SvgFileStore(new ShapeFactory())));
 }
 
 test('six shapes, nesting, editing, and SVG round trip', () => {
@@ -16,7 +17,7 @@ test('six shapes, nesting, editing, and SVG round trip', () => {
   assert.equal(cli.run('init 400 200'), 'canvas 400x200 created');
   for (const line of [
     'create g flow',
-    'create rect r 10 20 40 30 #aaa in flow',
+    'create rect r 10 20 40 30 #0bf245 in flow',
     'create circle c 80 40 10 red in flow',
     'create ellipse e 100 50 5 8 in flow',
     'create line l 1 2 3 4 black in flow',
@@ -162,5 +163,21 @@ test('successful document operations block history until the next edit', () => {
   assert.doesNotMatch(cli.run(`read "${file}"`), /^error:/);
   assert.equal(cli.run('undo'), 'error: undo not allowed after io command');
   assert.match(cli.run('show r'), /rect#r/);
+});
+
+test('set text undo reports the restored content', () => {
+  const cli = setup();
+  cli.run('init');
+  cli.run('create text title 20 40 "My Diagram"');
+  cli.run('set title text "My Diagram v2"');
+
+  const undone = cli.run('undo');
+  assert.match(undone, /^undid: text#title .*"My Diagram"/);
+  assert.doesNotMatch(undone, /v2/);
+  assert.match(cli.run('show title'), /"My Diagram"/);
+
+  const redone = cli.run('redo');
+  assert.match(redone, /^redid: text#title .*"My Diagram v2"/);
+  assert.match(cli.run('show title'), /"My Diagram v2"/);
 });
 

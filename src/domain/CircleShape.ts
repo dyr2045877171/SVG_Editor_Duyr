@@ -1,6 +1,5 @@
-﻿import { Shape } from './Shape';
+import { Shape } from './Shape';
 import { finite, numberText, parseNumber, positive } from './Numbers';
-import { escapeXml } from './Xml';
 
 export class CircleShape extends Shape {
   constructor(id: string, private cx: number, private cy: number, private r: number) {
@@ -34,8 +33,8 @@ export class CircleShape extends Shape {
     return `circle#${this.id} cx=${numberText(this.cx)} cy=${numberText(this.cy)} r=${numberText(this.r)}${this.styleSummary()}`;
   }
 
-  toSvg(depth: number): string {
-    return `${this.prefix(depth)}<circle id="${escapeXml(this.id)}" cx="${numberText(this.cx)}" cy="${numberText(this.cy)}" r="${numberText(this.r)}"${this.styleXml()}/>`;
+  override attributes(): ReadonlyArray<readonly [string, string]> {
+    return [['cx', numberText(this.cx)], ['cy', numberText(this.cy)],
+      ['r', numberText(this.r)], ...super.attributes()];
   }
 }
-

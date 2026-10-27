@@ -1,6 +1,5 @@
-﻿import { Shape } from './Shape';
+import { Shape } from './Shape';
 import { finite, numberText, parseNumber, positive } from './Numbers';
-import { escapeXml } from './Xml';
 
 export class EllipseShape extends Shape {
   constructor(id: string, private cx: number, private cy: number,
@@ -36,8 +35,8 @@ export class EllipseShape extends Shape {
     return `ellipse#${this.id} cx=${numberText(this.cx)} cy=${numberText(this.cy)} rx=${numberText(this.rx)} ry=${numberText(this.ry)}${this.styleSummary()}`;
   }
 
-  toSvg(depth: number): string {
-    return `${this.prefix(depth)}<ellipse id="${escapeXml(this.id)}" cx="${numberText(this.cx)}" cy="${numberText(this.cy)}" rx="${numberText(this.rx)}" ry="${numberText(this.ry)}"${this.styleXml()}/>`;
+  override attributes(): ReadonlyArray<readonly [string, string]> {
+    return [['cx', numberText(this.cx)], ['cy', numberText(this.cy)],
+      ['rx', numberText(this.rx)], ['ry', numberText(this.ry)], ...super.attributes()];
   }
 }
-

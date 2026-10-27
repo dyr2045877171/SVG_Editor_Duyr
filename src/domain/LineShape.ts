@@ -1,6 +1,5 @@
-﻿import { Shape } from './Shape';
+import { Shape } from './Shape';
 import { finite, numberText, parseNumber, positive } from './Numbers';
-import { escapeXml } from './Xml';
 
 export class LineShape extends Shape {
   constructor(id: string, private x1: number, private y1: number,
@@ -39,8 +38,8 @@ export class LineShape extends Shape {
     return `line#${this.id} (${numberText(this.x1)},${numberText(this.y1)}) -> (${numberText(this.x2)},${numberText(this.y2)})${this.styleSummary()}`;
   }
 
-  toSvg(depth: number): string {
-    return `${this.prefix(depth)}<line id="${escapeXml(this.id)}" x1="${numberText(this.x1)}" y1="${numberText(this.y1)}" x2="${numberText(this.x2)}" y2="${numberText(this.y2)}"${this.styleXml()}/>`;
+  override attributes(): ReadonlyArray<readonly [string, string]> {
+    return [['x1', numberText(this.x1)], ['y1', numberText(this.y1)],
+      ['x2', numberText(this.x2)], ['y2', numberText(this.y2)], ...super.attributes()];
   }
 }
-

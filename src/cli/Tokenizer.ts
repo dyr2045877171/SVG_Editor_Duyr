@@ -1,4 +1,4 @@
-﻿export class Tokenizer {
+export class Tokenizer {
   parse(line: string): string[] {
     if (!line.trim() || line.trimStart().startsWith('#')) return [];
     const tokens: string[] = [];
@@ -23,5 +23,11 @@
     if (started) tokens.push(current);
     return tokens;
   }
-}
 
+  number(value: string, name: string): number {
+    if (value.trim() === '') throw new Error(`invalid ${name}: expected number`);
+    const number = Number(value);
+    if (!Number.isFinite(number)) throw new Error(`invalid ${name}: must be finite`);
+    return number;
+  }
+}

@@ -1,3 +1,4 @@
+#基础测试
 init 400 200
 create g flow
 create rect start 30 70 120 60 #4a90d9 in flow
@@ -5,3 +6,27 @@ create line edge 150 100 250 100 black in flow
 create rect end 250 70 120 60 #f5a623 in flow
 tree
 save demo.svg
+
+#完整测试
+$ npm run cli
+svg-editor 0.1 — type 'help' for commands
+
+svg> init 800 600
+svg> create rect bg 0 0 800 600 #fbf9fa
+svg> create text title 20 40 "My Diagram"
+svg> create circle c1 100 100 20 red
+svg> create rect box 200 80 60 60 #3366ff
+svg> group markers c1 box
+svg> tree
+svg> move c1 30 0
+svg> undo
+svg> redo
+svg> set title text "My Diagram v2"
+svg> undo
+svg> group bad c1 markers
+svg> delete box
+svg> undo
+svg> save demo.svg
+svg> undo
+svg> read other.svg
+svg> tree

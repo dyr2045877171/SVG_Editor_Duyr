@@ -1,6 +1,5 @@
-﻿import { Shape } from './Shape';
+import { Shape } from './Shape';
 import { finite, numberText, parseNumber, positive } from './Numbers';
-import { escapeXml } from './Xml';
 
 export class RectShape extends Shape {
   constructor(id: string, private x: number, private y: number,
@@ -36,8 +35,8 @@ export class RectShape extends Shape {
     return `rect#${this.id} x=${numberText(this.x)} y=${numberText(this.y)} w=${numberText(this.width)} h=${numberText(this.height)}${this.styleSummary()}`;
   }
 
-  toSvg(depth: number): string {
-    return `${this.prefix(depth)}<rect id="${escapeXml(this.id)}" x="${numberText(this.x)}" y="${numberText(this.y)}" width="${numberText(this.width)}" height="${numberText(this.height)}"${this.styleXml()}/>`;
+  override attributes(): ReadonlyArray<readonly [string, string]> {
+    return [['x', numberText(this.x)], ['y', numberText(this.y)],
+      ['width', numberText(this.width)], ['height', numberText(this.height)], ...super.attributes()];
   }
 }
-

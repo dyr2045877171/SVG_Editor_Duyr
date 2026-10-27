@@ -1,4 +1,4 @@
-﻿import { Shape } from '../domain/Shape';
+import { Shape } from '../domain/Shape';
 import { RectShape } from '../domain/RectShape';
 import { CircleShape } from '../domain/CircleShape';
 import { EllipseShape } from '../domain/EllipseShape';
@@ -6,8 +6,19 @@ import { LineShape } from '../domain/LineShape';
 import { TextShape } from '../domain/TextShape';
 import { GroupShape } from '../domain/GroupShape';
 import { parseNumber } from '../domain/Numbers';
+import { SvgShapeCreator } from './ports/SvgShapeCreator';
 
-export class ShapeFactory {
+export class ShapeFactory implements SvgShapeCreator {
+  private readonly svgFields = new Map<string, readonly string[]>([
+    ['rect', ['x', 'y', 'width', 'height']],
+    ['circle', ['cx', 'cy', 'r']],
+    ['ellipse', ['cx', 'cy', 'rx', 'ry']],
+    ['line', ['x1', 'y1', 'x2', 'y2']],
+    ['text', ['x', 'y']],
+    ['g', []]
+  ]);
+  private readonly zeroDefaults = new Set(['x', 'y', 'cx', 'cy', 'x1', 'y1', 'x2', 'y2']);
+
   create(type: string, id: string, args: string[]): Shape {
     let shape: Shape;
     let expected = 0;
@@ -43,6 +54,20 @@ export class ShapeFactory {
     return shape;
   }
 
+  createFromSvg(type: string, id: string,
+    attributes: Readonly<Record<string, string>>, textContent: string): Shape {
+    const fields = this.svgFields.get(type);
+    if (!fields) throw new Error(`unsupported SVG element: <${type}>`);
+    const args = fields.map(name => attributes[name] ?? (this.zeroDefaults.has(name) ? '0' : ''));
+    if (type === 'text') args.push(textContent);
+    const shape = this.create(type, id, args);
+    for (const style of ['fill', 'stroke', 'stroke-width']) {
+      const value = attributes[style];
+      if (value !== undefined) shape.setAttribute(style, value);
+    }
+    return shape;
+  }
+
   private numbers(values: string[], names: string[]): number[] {
     return values.map((value, index) => parseNumber(value, names[index]!));
   }
@@ -53,5 +78,3 @@ export class ShapeFactory {
     }
   }
 }
-
-

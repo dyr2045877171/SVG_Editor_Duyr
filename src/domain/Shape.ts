@@ -1,6 +1,5 @@
-﻿import type { GroupShape } from './GroupShape';
+import type { GroupShape } from './GroupShape';
 import { nonNegative } from './Numbers';
-import { escapeXml } from './Xml';
 
 export abstract class Shape {
   parent: GroupShape | null = null;
@@ -15,7 +14,6 @@ export abstract class Shape {
   abstract scale(factor: number): void;
   abstract clone(): Shape;
   abstract summary(): string;
-  abstract toSvg(depth: number): string;
 
   setAttribute(attr: string, value: string): void {
     if (attr === 'fill' || attr === 'stroke') {
@@ -33,20 +31,15 @@ export abstract class Shape {
     return this.style.get(attr);
   }
 
-  protected copyStyleTo(target: Shape): void {
-    for (const [key, value] of this.style) target.style.set(key, value);
+  attributes(): ReadonlyArray<readonly [string, string]> {
+    return [...this.style];
   }
 
-  protected styleXml(): string {
-    return [...this.style].map(([key, value]) => ` ${key}="${escapeXml(value)}"`).join('');
+  protected copyStyleTo(target: Shape): void {
+    for (const [key, value] of this.style) target.style.set(key, value);
   }
 
   protected styleSummary(): string {
     return [...this.style].map(([key, value]) => ` ${key}=${value}`).join('');
   }
-
-  protected prefix(depth: number): string {
-    return '  '.repeat(depth);
-  }
 }
-

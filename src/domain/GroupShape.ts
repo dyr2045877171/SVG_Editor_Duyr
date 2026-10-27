@@ -1,6 +1,5 @@
-﻿import { Shape } from './Shape';
+import { Shape } from './Shape';
 import { positive } from './Numbers';
-import { escapeXml } from './Xml';
 
 export class GroupShape extends Shape {
   constructor(id: string) { super(id); }
@@ -45,12 +44,4 @@ export class GroupShape extends Shape {
   }
 
   summary(): string { return `g#${this.id}${this.styleSummary()}`; }
-
-  toSvg(depth: number): string {
-    const open = `${this.prefix(depth)}<g id="${escapeXml(this.id)}"${this.styleXml()}`;
-    if (this.items.length === 0) return `${open}/>`;
-    return `${open}>\n${this.items.map(child => child.toSvg(depth + 1)).join('\n')}\n${this.prefix(depth)}</g>`;
-  }
 }
-
-

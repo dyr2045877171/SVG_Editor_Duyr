@@ -9,7 +9,6 @@ import { UngroupCommand } from '../application/commands/UngroupCommand';
 import { AddToCommand } from '../application/commands/AddToCommand';
 import { FrontCommand } from '../application/commands/FrontCommand';
 import { BackCommand } from '../application/commands/BackCommand';
-import { parseNumber } from '../domain/Numbers';
 import { Tokenizer } from './Tokenizer';
 
 export class CommandDispatcher {
@@ -23,8 +22,8 @@ export class CommandDispatcher {
       switch (name) {
         case 'init':
           this.arity(name, args, 0, 2);
-          return this.editor.init(args[0] === undefined ? 800 : parseNumber(args[0], 'width'),
-            args[1] === undefined ? 600 : parseNumber(args[1], 'height'));
+          return this.editor.init(args[0] === undefined ? 800 : this.tokenizer.number(args[0], 'width'),
+            args[1] === undefined ? 600 : this.tokenizer.number(args[1], 'height'));
         case 'read':
           this.arity(name, args, 1);
           return this.editor.read(args[0]!).join('\n');
@@ -34,8 +33,8 @@ export class CommandDispatcher {
         case 'canvas':
           this.arity(name, args, 0, 2);
           if (args.length === 1) throw new Error('canvas requires width and height');
-          return this.editor.canvas(args[0] === undefined ? undefined : parseNumber(args[0], 'width'),
-            args[1] === undefined ? undefined : parseNumber(args[1], 'height'));
+          return this.editor.canvas(args[0] === undefined ? undefined : this.tokenizer.number(args[0], 'width'),
+            args[1] === undefined ? undefined : this.tokenizer.number(args[1], 'height'));
         case 'create': {
           if (args.length < 2) throw new Error('invalid create arguments');
           const [type, id, ...rest] = args;
@@ -51,10 +50,10 @@ export class CommandDispatcher {
           return this.editor.execute(new DeleteCommand(args[0]!));
         case 'move':
           this.arity(name, args, 3);
-          return this.editor.execute(new MoveCommand(args[0]!, parseNumber(args[1]!, 'dx'), parseNumber(args[2]!, 'dy')));
+          return this.editor.execute(new MoveCommand(args[0]!, this.tokenizer.number(args[1]!, 'dx'), this.tokenizer.number(args[2]!, 'dy')));
         case 'scale':
           this.arity(name, args, 2);
-          return this.editor.execute(new ScaleCommand(args[0]!, parseNumber(args[1]!, 'factor')));
+          return this.editor.execute(new ScaleCommand(args[0]!, this.tokenizer.number(args[1]!, 'factor')));
         case 'set':
           this.arity(name, args, 3);
           return this.editor.execute(new SetCommand(args[0]!, args[1]!, args[2]!));

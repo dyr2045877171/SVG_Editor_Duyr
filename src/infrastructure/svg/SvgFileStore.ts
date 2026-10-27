@@ -1,14 +1,15 @@
-﻿import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { DOMParser, type Element } from '@xmldom/xmldom';
-import { ShapeFactory } from '../../application/ShapeFactory';
+import { SvgShapeCreator } from '../../application/ports/SvgShapeCreator';
 import { SvgReadResult, SvgStore } from '../../application/ports/SvgStore';
 import { GroupShape } from '../../domain/GroupShape';
-import { Shape } from '../../domain/Shape';
 import { SvgDocument } from '../../domain/SvgDocument';
 import { parseNumber } from '../../domain/Numbers';
+import { SvgSerializer } from './SvgSerializer';
 
 export class SvgFileStore implements SvgStore {
-  constructor(private readonly factory = new ShapeFactory()) {}
+  constructor(private readonly factory: SvgShapeCreator,
+    private readonly serializer = new SvgSerializer()) {}
 
   read(filePath: string): SvgReadResult {
     let xml: string;
@@ -60,7 +61,12 @@ export class SvgFileStore implements SvgStore {
           warnings.push(`warning: assigned id ${id} to unnamed <${tag}>`);
         }
         assigned.add(id);
-        const shape = this.parseShape(tag, id, child);
+        const attributes: Record<string, string> = {};
+        for (let index = 0; index < child.attributes.length; index++) {
+          const attribute = child.attributes.item(index)!;
+          attributes[attribute.name] = attribute.value;
+        }
+        const shape = this.factory.createFromSvg(tag, id, attributes, child.textContent ?? '');
         parent.append(shape);
         if (shape instanceof GroupShape) {
           parseChildren(child, shape);
@@ -76,30 +82,10 @@ export class SvgFileStore implements SvgStore {
 
   write(filePath: string, document: SvgDocument): void {
     try {
-      writeFileSync(filePath, document.toSvg(), 'utf8');
+      writeFileSync(filePath, this.serializer.serialize(document), 'utf8');
     } catch {
       throw new Error(`cannot write file: ${filePath}`);
     }
-  }
-
-  private parseShape(tag: string, id: string, element: Element): Shape {
-    const attr = (name: string, fallback?: string): string => element.getAttribute(name) ?? fallback ?? '';
-    let args: string[];
-    switch (tag) {
-      case 'rect': args = [attr('x', '0'), attr('y', '0'), attr('width'), attr('height')]; break;
-      case 'circle': args = [attr('cx', '0'), attr('cy', '0'), attr('r')]; break;
-      case 'ellipse': args = [attr('cx', '0'), attr('cy', '0'), attr('rx'), attr('ry')]; break;
-      case 'line': args = [attr('x1', '0'), attr('y1', '0'), attr('x2', '0'), attr('y2', '0')]; break;
-      case 'text': args = [attr('x', '0'), attr('y', '0'), element.textContent ?? '']; break;
-      case 'g': args = []; break;
-      default: throw new Error(`unsupported SVG element: <${tag}>`);
-    }
-    const shape = this.factory.create(tag, id, args);
-    for (const style of ['fill', 'stroke', 'stroke-width']) {
-      const value = element.getAttribute(style);
-      if (value !== null) shape.setAttribute(style, value);
-    }
-    return shape;
   }
 
   private applyTransform(group: GroupShape, transform: string | null): void {
@@ -123,5 +109,3 @@ export class SvgFileStore implements SvgStore {
     return (element.localName || element.tagName).split(':').pop()!;
   }
 }
-
-

@@ -1,4 +1,4 @@
-﻿import { GroupShape } from './GroupShape';
+import { GroupShape } from './GroupShape';
 import { Shape } from './Shape';
 import { numberText, positive } from './Numbers';
 
@@ -143,11 +143,6 @@ export class SvgDocument {
     const shape = this.requireShape(id);
     const parent = shape.parent === this.root ? 'svg' : `g#${shape.parent!.id}`;
     return `${shape.summary()} parent=${parent}`;
-  }
-
-  toSvg(): string {
-    const children = this.root.children.map(child => child.toSvg(1)).join('\n');
-    return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${numberText(this.width)}" height="${numberText(this.height)}" viewBox="0 0 ${numberText(this.width)} ${numberText(this.height)}">${children ? `\n${children}\n` : '\n'}</svg>\n`;
   }
 
   private childLines(shape: Shape, indent: string): string[] {

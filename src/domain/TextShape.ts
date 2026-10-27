@@ -1,6 +1,5 @@
-﻿import { Shape } from './Shape';
+import { Shape } from './Shape';
 import { finite, numberText, parseNumber, positive } from './Numbers';
-import { escapeXml } from './Xml';
 
 export class TextShape extends Shape {
   constructor(id: string, private x: number, private y: number, private content: string) {
@@ -9,6 +8,7 @@ export class TextShape extends Shape {
   }
 
   get type(): string { return 'text'; }
+  get textContent(): string { return this.content; }
   move(dx: number, dy: number): void { this.x += finite(dx, 'dx'); this.y += finite(dy, 'dy'); }
   scale(factor: number): void { positive(factor, 'scale factor'); this.x *= factor; this.y *= factor; }
 
@@ -30,8 +30,7 @@ export class TextShape extends Shape {
     return `text#${this.id} (${numberText(this.x)},${numberText(this.y)}) "${this.content}"${this.styleSummary()}`;
   }
 
-  toSvg(depth: number): string {
-    return `${this.prefix(depth)}<text id="${escapeXml(this.id)}" x="${numberText(this.x)}" y="${numberText(this.y)}"${this.styleXml()}>${escapeXml(this.content)}</text>`;
+  override attributes(): ReadonlyArray<readonly [string, string]> {
+    return [['x', numberText(this.x)], ['y', numberText(this.y)], ...super.attributes()];
   }
 }
-
